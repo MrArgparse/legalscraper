@@ -10,4 +10,20 @@ Uninstall with: `pip uninstall git+https://github.com/MrArgparse/legalscraper.gi
 
 - Returns not only scene info but also trailer/poster links as well as performer ages and nationalities when available.
 
+Help:
+
+```
+positional arguments:
+
+  url                            URL
+
+options:
+
+  -h, --help                     show this help message and exit
+
+  --json, -j                     Outputs to a json file
+
+  --output OUTPUT, -o OUTPUT     Specify output path
+```
+
 ![Alt text](https://github.com/MrArgparse/legalscraper/blob/main/sample.png?raw=true)
