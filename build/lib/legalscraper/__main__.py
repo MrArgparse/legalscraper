@@ -12,6 +12,7 @@ import os
 import re
 import requests
 import sys
+import validators
 
 @dataclass(kw_only=True)
 class MetaObject:
@@ -202,24 +203,42 @@ def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageE
 			unknown_models[name] = {'Age': age, 'Nationality': nationality, 'Image': src}
 
 	return female_models, male_models, tx_models, unknown_models
+
+def query_url(query) -> Optional[str]:
+	r = requests.get(f"https://www.analvids.com/api/autocomplete/search?q={query}")
+	data = r.json()
+
+	if data:
+		results = data['terms']
+
+	if len(results) > 0:
+
+		url = results[0].get('url')
+
+		if url:
+
+			return url
 		
 def main() -> None:
 	logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 	parser = parse_legalscraper()
 	args = parser.parse_args(sys.argv[1:])
-	metadata_list = {}
 
 	for arg in args.url:
 
 		try:
-			r = make_request(arg)
+			if validators.url(arg):
+				r = make_request(arg)
+
+			else:
+				r = make_request(query_url(arg))
+
 			r.raise_for_status
 			html = BeautifulSoup(r.content, 'html.parser')
 			metadata = get_analvids(html)
-			metadata_list[arg] = metadata
 
 			if args.json:
-				save_json(metadata_list, args.output)
+				save_json(asdict(metadata), args.output)
 
 			print_json(data=asdict(metadata), indent=4)
 

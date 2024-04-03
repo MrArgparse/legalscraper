@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: legalscraper
 Version: 0.0.1
-Summary: Scrape analvids
+Summary: Get metadata from AnalVids
 Author-email: brokedarius <-@-.org>
 Maintainer-email: brokedarius <-@-.org>
 Keywords: images,upload,fapping
@@ -16,5 +16,6 @@ Classifier: Programming Language :: Python :: 3 :: Only
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 Requires-Dist: beautifulsoup4
+Requires-Dist: getuseragent
 Requires-Dist: requests
 Requires-Dist: rich
