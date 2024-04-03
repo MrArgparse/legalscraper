@@ -8,6 +8,6 @@ Uninstall with: `pip uninstall git+https://github.com/MrArgparse/legalscraper.gi
 
 - Batch processing
 
-- Returns not only scene info but also trailer/poster links but also and performer ages and nationalities when available.
+- Returns not only scene info but also trailer/poster links as well as performer ages and nationalities when available.
 
 ![Alt text](https://github.com/MrArgparse/legalscraper/blob/main/sample.png?raw=true)
