@@ -229,7 +229,7 @@ def main() -> None:
 				r = make_request(arg)
 
 			else:
-				query_link = query_url(arg)
+				query_link = query_url(arg.replace('_', ' ').replace('.', ' ').replace('-', ' '))
 
 				if query_link:
 					r = make_request(query_link)
@@ -270,3 +270,5 @@ def main() -> None:
 
 if __name__ == '__main__':
 	main()
+ 
+ 
