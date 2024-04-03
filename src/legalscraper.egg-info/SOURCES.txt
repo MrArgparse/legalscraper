@@ -1,0 +1,9 @@
+pyproject.toml
+src/legalscraper/__init__.py
+src/legalscraper/__main__.py
+src/legalscraper.egg-info/PKG-INFO
+src/legalscraper.egg-info/SOURCES.txt
+src/legalscraper.egg-info/dependency_links.txt
+src/legalscraper.egg-info/entry_points.txt
+src/legalscraper.egg-info/requires.txt
+src/legalscraper.egg-info/top_level.txt

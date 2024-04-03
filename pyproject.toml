@@ -1,0 +1,44 @@
+[project]
+name = "legalscraper"
+version = "0.0.1"
+description = "Get metadata from AnalVids"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["images", "upload", "fapping"]
+
+authors = [
+  {name = "brokedarius", email = "-@-.org" }
+]
+
+maintainers = [
+  {name = "brokedarius", email = "-@-.org" }
+]
+
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+
+  "Intended Audience :: Developers",
+  
+  "Topic :: Software Development :: Build Tools",
+
+  "License :: OSI Approved :: MIT License",
+
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+dependencies = [
+  "beautifulsoup4",
+  "getuseragent",
+  "requests",
+  "rich"
+]
+
+[project.scripts]
+legalscraper = "legalscraper.__main__:main"
+
+[build-system]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
