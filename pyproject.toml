@@ -33,7 +33,8 @@ dependencies = [
   "beautifulsoup4",
   "getuseragent",
   "requests",
-  "rich"
+  "rich",
+  "validators"
 ]
 
 [project.scripts]
