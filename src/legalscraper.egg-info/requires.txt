@@ -2,3 +2,4 @@ beautifulsoup4
 getuseragent
 requests
 rich
+validators

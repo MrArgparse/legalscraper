@@ -19,3 +19,4 @@ Requires-Dist: beautifulsoup4
 Requires-Dist: getuseragent
 Requires-Dist: requests
 Requires-Dist: rich
+Requires-Dist: validators

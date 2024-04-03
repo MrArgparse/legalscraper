@@ -7,11 +7,11 @@ requires-python = ">=3.10"
 keywords = ["images", "upload", "fapping"]
 
 authors = [
-  {name = "MrArgparse", email = "-@-.org" }
+  {name = "brokedarius", email = "-@-.org" }
 ]
 
 maintainers = [
-  {name = "MrArgparse", email = "-@-.org" }
+  {name = "brokedarius", email = "-@-.org" }
 ]
 
 classifiers = [

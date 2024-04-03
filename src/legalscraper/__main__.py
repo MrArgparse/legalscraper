@@ -1,5 +1,5 @@
-from bs4 import BeautifulSoup, Tag, PageElement
-from dataclasses import dataclass, asdict
+from bs4 import BeautifulSoup, Tag
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from getuseragent import UserAgent #type: ignore
 from rich.logging import RichHandler
@@ -9,31 +9,46 @@ import argparse
 import json
 import logging
 import os
+import random
 import re
 import requests
 import sys
 import validators
 
 @dataclass(kw_only=True)
+class Info:
+	Age: Optional[int] = None
+	Nationality: Optional[str] = None
+	SRC: Optional[str] = None
+
+@dataclass
+class Model:
+    Name: Optional[str] = None
+    ModelData: Info = field(default_factory=Info)
+
+    def as_dict(self) -> object:
+        return {self.Name: self.ModelData.__dict__}
+
+@dataclass(kw_only=True)
 class MetaObject:
-	Title: str
-	Date: str
+	Title: Optional[str] = None
+	Date: Optional[str] = None
 	Runtime: Optional[str] = None
 	Studio: Optional[str] = None
 	Code: Optional[str] = None
 	Poster: Optional[str] = None
 	Trailers: Optional[dict[str, str]] = None
 	Tags: Optional[list[str]] = None
-	FemaleModels: Optional[dict[str | None, dict[str, str | PageElement | None]]] = None
-	MaleModels: Optional[dict[str | None, dict[str, str | PageElement | None]]] = None
-	TxModels: Optional[dict[str | None, dict[str, str | PageElement | None]]] = None
-	UnknownModels: Optional[dict[str | None, dict[str, str | PageElement | None]]] = None
+	FemaleModels: list[object] = field(default_factory=list)
+	MaleModels: list[object] = field(default_factory=list)
+	TxModels: list[object] = field(default_factory=list)
+	UnknownModels: list[object] = field(default_factory=list)
 
 def parse_legalscraper() -> argparse.ArgumentParser:
 	parser=argparse.ArgumentParser(prog='legalscraper')
 	parser.add_argument('url', nargs='+', help='URL')
 	parser.add_argument('--json', '-j', action='store_true', default=False, help='Outputs to a json file')
-	parser.add_argument('--output', '-o', default=os.path.join(os.getcwd(), f'AnalVids-Dict-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.json'), help='Outputs to a json file')
+	parser.add_argument('--output', '-o', default=os.path.join(os.path.expanduser('~'), 'Desktop', f'AnalVids-Dict-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.json'), help='Specify output path')
 
 	return parser
 
@@ -43,27 +58,29 @@ def save_json(content: dict[str, MetaObject], path: str, indent: int = 4) -> Non
 		json.dump(content, json_file, indent=indent)
 
 def make_request(url: str) -> requests.models.Response:
-	headers = {'User-Agent': UserAgent('chrome', limit=1).list[0]}
+	browser_list = ['chrome', 'firefox']
+	browser = random.choice(browser_list)
+	headers = {'User-Agent': UserAgent(browser, limit=1).list[0]}
 	r = requests.get(url, headers=headers)
 
 	return r
 
 def get_analvids(html: BeautifulSoup) -> MetaObject:
-	code, date, title = None, None, None
+	metadata = MetaObject()
 
 	if html.title:
-		title = html.title.text.split(' - AnalVids')[0]
+		metadata.Title = html.title.text.split(' - AnalVids')[0]
 		pat = r'\b[A-Za-z]{2,4}\d{2,4}\b'
-		match = re.search(pat, title)
+		match = re.search(pat, metadata.Title)
 
 		if match:
-			code = match.group(0)
+			metadata.Code = match.group(0)
 
 	date_pattern = re.compile(r'.*-calendar*')
 	date_element = html.find(class_=date_pattern)
 
 	if date_element:
-		date = date_element.text.strip()
+		metadata.Date = date_element.text.strip()
 
 	watch_element = html.find(class_='watch')
 
@@ -85,11 +102,6 @@ def get_analvids(html: BeautifulSoup) -> MetaObject:
 
 				if size and src:
 					trailers[size] = src
-
-	if not title or not date:
-		raise ValueError('Title and Date fields are mandatory.')
-
-	metadata = MetaObject(Title=title, Date=date)
 
 	if runtime:
 		metadata.Runtime = str(runtime)
@@ -116,20 +128,14 @@ def get_analvids(html: BeautifulSoup) -> MetaObject:
 	matching_hrefs = html.find_all('a', href=url_pattern)
 	hrefs = [link.get('href') for link in matching_hrefs]
 	hrefs.sort()
-	metadata.FemaleModels, metadata.MaleModels, metadata.TxModels, metadata.UnknownModels = get_models(hrefs)
-
-	if code:
-		metadata.Code = code
+	get_models(hrefs, metadata)
 
 	return metadata
 
-def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageElement | None]], dict[str | None, dict[str, str | PageElement | None]], dict[str | None, dict[str, str | PageElement | None]], dict[str | None, dict[str, str | PageElement | None]]]:
-	female_models = {}
-	male_models = {}
-	tx_models = {}
-	unknown_models = {}
+def get_models(hrefs: list[str], metadata: MetaObject) -> MetaObject:
 
 	for h in hrefs:
+		model = Model()
 		r = make_request(h)
 		r.raise_for_status
 		html = BeautifulSoup(r.content, 'html.parser')
@@ -138,10 +144,7 @@ def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageE
 		if html.title:
 
 			if html.text:
-				name = html.title.text.split(' - AnalVids')[0]
-
-		else:
-			name = None
+				model.Name = html.title.text.split(' - AnalVids')[0]
 
 		nationality_pattern = re.compile(r'.*/nationality/*')
 
@@ -149,10 +152,7 @@ def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageE
 			nationality_ele = html.find('a', href=nationality_pattern)
 
 			if nationality_ele:
-				nationality = nationality_ele.next_element
-
-		else:
-			nationality = None
+				model.ModelData.Nationality = str(nationality_ele.next_element)
 
 		age_element = html.find('td', string='Age:')
 
@@ -160,10 +160,7 @@ def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageE
 			age_element_nxt_sib = age_element.next_sibling
 
 			if age_element_nxt_sib:
-				age = age_element_nxt_sib.text
-
-		else:
-			age = None
+				model.ModelData.Age = int(age_element_nxt_sib.text)
 
 		img_element =  html.find(class_='model__left model__left--photo')
 
@@ -174,10 +171,7 @@ def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageE
 				resized_src = img_tag.get('src')
 
 				if isinstance(resized_src, str):
-					src = resized_src.split('&quot;);')[0]
-
-		else:
-			src = None
+					model.ModelData.SRC = resized_src.split('&quot;);')[0]
 
 		if text_primary:
 			gender_element = text_primary.find('a')
@@ -187,26 +181,28 @@ def get_models(hrefs: list[str]) -> tuple[dict[str | None, dict[str, str | PageE
 
 				if isinstance(gender_href, str):
 					gender = gender_href.split('https://www.analvids.com/models/sex/')[-1].split('/nationality/')[0]
+					dict_model = model.as_dict()
 
 					match gender:
 
 						case 'female':
-							female_models[name] = {'Age': age, 'Nationality': nationality, 'Image': src}
+							metadata.FemaleModels.append(dict_model)
 
 						case 'male':
-							male_models[name] = {'Age': age, 'Nationality': nationality, 'Image': src}
+							metadata.MaleModels.append(dict_model)
 
 						case 'tx':
-							tx_models[name] = {'Age': age, 'Nationality': nationality, 'Image': src}
+							metadata.TxModels.append(dict_model)
 
 		else:
-			unknown_models[name] = {'Age': age, 'Nationality': nationality, 'Image': src}
+			metadata.UnknownModels.append(dict_model)
 
-	return female_models, male_models, tx_models, unknown_models
+	return metadata
 
-def query_url(query) -> Optional[str]:
+def query_url(query: str) -> str:
 	r = requests.get(f"https://www.analvids.com/api/autocomplete/search?q={query}")
 	data = r.json()
+	query_link = ''
 
 	if data:
 		results = data['terms']
@@ -216,8 +212,9 @@ def query_url(query) -> Optional[str]:
 		url = results[0].get('url')
 
 		if url:
+			query_link = url
 
-			return url
+	return query_link
 		
 def main() -> None:
 	logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
@@ -227,18 +224,43 @@ def main() -> None:
 	for arg in args.url:
 
 		try:
+
 			if validators.url(arg):
 				r = make_request(arg)
 
 			else:
-				r = make_request(query_url(arg))
+				query_link = query_url(arg)
+
+				if query_link:
+					r = make_request(query_link)
+
+				else:
+
+					raise ValueError
 
 			r.raise_for_status
 			html = BeautifulSoup(r.content, 'html.parser')
 			metadata = get_analvids(html)
 
 			if args.json:
-				save_json(asdict(metadata), args.output)
+				filename = f'AnalVids-Dict-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.json'
+
+				if os.path.isfile(args.output):
+					output = args.output
+
+				elif os.path.isdir(args.output):
+
+					if not os.path.exists(args.output):
+						os.makedirs(args.output)
+
+					output = os.path.join(args.output, filename)
+
+				else:
+					full_path = os.path.join(os.path.expanduser('~'), filename)
+					logging.warning(f'Path does not exist, defaulting to: {full_path}')
+					output = os.path.join(os.path.expanduser('~'), 'Desktop', filename)
+
+				save_json(asdict(metadata), output)
 
 			print_json(data=asdict(metadata), indent=4)
 
