@@ -48,7 +48,7 @@ def parse_legalscraper() -> argparse.ArgumentParser:
 	parser=argparse.ArgumentParser(prog='legalscraper')
 	parser.add_argument('url', nargs='+', help='URL')
 	parser.add_argument('--json', '-j', action='store_true', default=False, help='Outputs to a json file')
-	parser.add_argument('--output', '-o', default=os.path.join(os.path.expanduser('~'), 'Desktop', f'AnalVids-Dict-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.json'), help='Specify output path')
+	parser.add_argument('--output', '-o', default=os.path.join(os.path.expanduser('~'), 'Desktop', f'AnalVids-Dict-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.json'), help='Specify output path (Defaults to Desktop)')
 
 	return parser
 
