@@ -23,7 +23,7 @@ options:
 
   --json, -j                     Outputs to a json file
 
-  --output OUTPUT, -o OUTPUT     Specify output path
+  --output OUTPUT, -o OUTPUT     Specify output path (Defaults to desktop)
 ```
 
 ![Alt text](https://github.com/MrArgparse/legalscraper/blob/main/sample.png?raw=true)
